@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import User
+from django.contrib.auth import get_user_model
 
+
+user = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -24,3 +27,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class UserListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+        ]
