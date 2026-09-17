@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Profile
 from django.contrib.auth import get_user_model
 
 
@@ -40,4 +40,32 @@ class UserListSerializer(serializers.ModelSerializer):
             "is_active",
             "is_staff",
             "is_superuser",
+        ]
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(
+        source="user.id",
+        read_only=True
+    )
+
+    username = serializers.CharField(
+        source="user.username",
+        read_only=True
+    )
+
+    email = serializers.EmailField(
+        source="user.email",
+        read_only=True
+    )
+
+    class Meta:
+        model = Profile
+        fields = [
+            "user_id",
+            "username",
+            "email",
+            "phone",
+            "address",
+            "dob",
         ]
