@@ -1,7 +1,11 @@
 from datetime import datetime
 from pathlib import Path
+
 from django.core.cache import cache
 from django.http import JsonResponse
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
 
 def get_client_ip(request):
@@ -42,15 +46,41 @@ class RequestLoggingMiddleware:
 
 class RateLimitMiddleware:
 
-    MAX_REQUESTS = 5
+    GROUP_LIMITS = {
+        "Gold": 10,
+        "Bronze": 5,
+        "Silver": 2,
+    }
     WINDOW = 60
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self.jwt_authentication = JWTAuthentication()
 
     def __call__(self, request):
         ip = get_client_ip(request)
 
+        try:
+            authentication = self.jwt_authentication.authenticate(request)
+        except AuthenticationFailed:
+            authentication = None
+
+        if authentication is None:
+            return self.get_response(request)
+
+        user, token = authentication
+
+        group = user.groups.first()
+
+        if group is None:
+            return self.get_response(request)
+
+        max_requests = self.GROUP_LIMITS.get(group.name)
+
+        if max_requests is None:
+            return self.get_response(request)
+
+        
         cache_key = f"rate_limit:{ip}"
 
         redis_client = cache.client.get_client()
@@ -60,7 +90,7 @@ class RateLimitMiddleware:
         if request_count == 1:
             redis_client.expire(cache_key, self.WINDOW)
 
-        if request_count > self.MAX_REQUESTS:
+        if request_count > max_requests:
             return JsonResponse(
                 {"detail": "Too many requests. Try again after 1 minute."},
                 status=429,
