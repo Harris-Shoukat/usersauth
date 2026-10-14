@@ -147,3 +147,5 @@ CACHES = {
         },
     }
 }
+
+GOOGLE_SUGGEST_URL = "http://suggestqueries.google.com/complete/search"
