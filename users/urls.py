@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views import RegisterView, UserListView, ProfileUpdateView
+from .views import RegisterView, UserListView, ProfileUpdateView, GoogleSuggestionsView
 
 
 urlpatterns = [
@@ -36,5 +36,11 @@ urlpatterns = [
         "profile/",
         ProfileUpdateView.as_view(),
         name="profile",
+    ),
+
+    path(
+        "suggestions/",
+        GoogleSuggestionsView.as_view(),
+        name="google-suggestions",
     ),
 ]
